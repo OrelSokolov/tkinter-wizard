@@ -1,7 +1,16 @@
 # -*- coding: utf-8 -*-
+import sys
+import os
 import tkinter as tk
 from tkinter import ttk
-from ..wizard_step import WizardStep
+
+# Add src to path for imports
+parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+src_dir = os.path.join(parent_dir, 'src')
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
+
+from wizard import WizardStep
 
 
 class CheckboxStep(WizardStep):
@@ -25,11 +34,11 @@ class CheckboxStep(WizardStep):
         checkbox_frame.pack(anchor=tk.W, fill=tk.X, padx=20)
         
         ttk.Checkbutton(checkbox_frame, 
-                       text="Trigger installation error", 
+                       text="Trigger wizard error", 
                        variable=self.error_checkbox).pack(anchor=tk.W, pady=5)
         
         warning = tk.Label(content_frame, 
-                          text="(If unchecked, installation will be successful)",
+                          text="(If unchecked, wizard will complete successfully)",
                           font=("Arial", 9), fg="gray")
         warning.pack(anchor=tk.W, padx=20, pady=(5, 0))
     

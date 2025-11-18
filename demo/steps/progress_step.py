@@ -1,27 +1,34 @@
 # -*- coding: utf-8 -*-
+import sys
+import os
 import tkinter as tk
 from tkinter import ttk
 import time
-from ..wizard_step import WizardStep
-from ..wizard_process import WizardProcess
-from ..progress_interface import ProgressBarAdapter
+
+# Add src to path for imports
+parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+src_dir = os.path.join(parent_dir, 'src')
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
+
+from wizard import WizardStep, WizardProcess, ProgressBarAdapter
 
 
 class ProgressProcess(WizardProcess):
     """Process with progress bar"""
     
     def run(self):
-        """Simulate installation with progress (runs in separate thread)"""
+        """Simulate process with progress (runs in separate thread)"""
         self.start_time = time.time()
         
         # Reset start time in progress_interface
         if self.progress_interface and hasattr(self.progress_interface, 'reset_start_time'):
             self.progress_interface.reset_start_time()
         
-        # Simulate installation with cancellation check
+        # Simulate process with cancellation check
         while not self.is_cancelled():
             elapsed = time.time() - self.start_time
-            percent = min((elapsed / 3.0) * 100, 100)  # 3 seconds for installation
+            percent = min((elapsed / 3.0) * 100, 100)  # 3 seconds for process
             
             # Calculate ETA
             if percent < 100 and percent > 0:
@@ -53,7 +60,7 @@ class ProgressStep(WizardStep):
     """Step with progress bar"""
     
     def create_content(self, content_frame):
-        title = tk.Label(content_frame, text="Preparing Installation", 
+        title = tk.Label(content_frame, text="Preparing", 
                         font=("Arial", 16, "bold"))
         title.pack(pady=(0, 20), anchor=tk.W)
         

@@ -1,6 +1,6 @@
 # Tkinter Wizard
 
-Library for creating installer wizards based on Tkinter.
+Library for creating general wizards based on Tkinter.
 
 ## Installation
 
@@ -12,7 +12,15 @@ pip install tkinter-wizard
 
 ```python
 import tkinter as tk
-from wizard import WizardApp, WizardStep
+from wizard import WizardApp, WizardStep, WizardConfig
+
+# Create configuration (optional)
+config = WizardConfig(
+    wizard_name="My Wizard",
+    wizard_version="1.0.0",
+    short_description="Setup Wizard",
+    long_description="This wizard helps you configure the application."
+)
 
 class MyStep(WizardStep):
     def create_content(self, content_frame):
@@ -24,7 +32,7 @@ class MyStep(WizardStep):
         return None
 
 root = tk.Tk()
-wizard = WizardApp(root)
+wizard = WizardApp(root, config=config)
 
 steps = [
     MyStep(wizard),
@@ -40,5 +48,5 @@ See `demo/example.py` for a complete usage example.
 
 ## License
 
-MIT
+Apache 2.0
 

@@ -1,7 +1,16 @@
 # -*- coding: utf-8 -*-
+import sys
+import os
 import tkinter as tk
 from tkinter import ttk
-from ..wizard_step import WizardStep
+
+# Add src to path for imports
+parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+src_dir = os.path.join(parent_dir, 'src')
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
+
+from wizard import WizardStep
 
 
 class ConfigurationStep(WizardStep):
@@ -17,20 +26,20 @@ class ConfigurationStep(WizardStep):
         title.pack(pady=(0, 20), anchor=tk.W)
         
         info = tk.Label(content_frame, 
-                       text="Select installation type:",
+                       text="Select configuration type:",
                        justify=tk.LEFT, font=("Arial", 10))
         info.pack(anchor=tk.W, pady=(0, 15))
         
         radio_frame = tk.Frame(content_frame)
         radio_frame.pack(anchor=tk.W, fill=tk.X, padx=20)
         
-        ttk.Radiobutton(radio_frame, text="Standard installation", 
+        ttk.Radiobutton(radio_frame, text="Standard", 
                        variable=self.config_choice, value="standard").pack(anchor=tk.W, pady=5)
         
-        ttk.Radiobutton(radio_frame, text="Minimal installation", 
+        ttk.Radiobutton(radio_frame, text="Minimal", 
                        variable=self.config_choice, value="minimal").pack(anchor=tk.W, pady=5)
         
-        ttk.Radiobutton(radio_frame, text="Full installation", 
+        ttk.Radiobutton(radio_frame, text="Full", 
                        variable=self.config_choice, value="full").pack(anchor=tk.W, pady=5)
     
     def create_process(self):

@@ -12,18 +12,20 @@ if os.path.exists(readme_path):
 setup(
     name="tkinter-wizard",
     version="0.1.0",
-    author="Your Name",
-    author_email="your.email@example.com",
-    description="Library for creating installer wizards based on Tkinter",
+    author="Oleg Orlov",
+    author_email="orelcokolov@gmail.com",
+    maintainer="Oleg Orlov",
+    maintainer_email="orelcokolov@gmail.com",
+    description="Library for creating general wizards based on Tkinter",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/tkinter-wizard",
+    url="https://github.com/OrelSokolov/tkinter-wizard",
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
@@ -45,8 +47,8 @@ setup(
         ],
     },
     project_urls={
-        "Bug Reports": "https://github.com/yourusername/tkinter-wizard/issues",
-        "Source": "https://github.com/yourusername/tkinter-wizard",
+        "Bug Reports": "https://github.com/OrelSokolov/tkinter-wizard/issues",
+        "Source": "https://github.com/OrelSokolov/tkinter-wizard",
     },
 )
 

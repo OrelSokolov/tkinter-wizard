@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
+import sys
+import os
 import tkinter as tk
 from tkinter import scrolledtext
 import time
-from ..wizard_step import WizardStep
-from ..wizard_process import WizardProcess
+
+# Add src to path for imports
+parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+src_dir = os.path.join(parent_dir, 'src')
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
+
+from wizard import WizardStep, WizardProcess
 
 
 class LogsProcess(WizardProcess):
@@ -13,7 +21,7 @@ class LogsProcess(WizardProcess):
         super().__init__(logger=logger, state_callback=state_callback)
         self.should_fail = should_fail
         self.logs = [
-            "[INFO] Initializing installation...",
+            "[INFO] Initializing wizard...",
             "[INFO] Checking system requirements...",
             "[OK] System requirements met",
             "[INFO] Preparing files...",
@@ -27,7 +35,7 @@ class LogsProcess(WizardProcess):
             "[OK] Shortcuts created",
             "[INFO] Updating environment variables...",
             "[OK] Environment variables updated",
-            "[INFO] Finalizing installation...",
+            "[INFO] Finalizing wizard...",
         ]
     
     def run(self):
@@ -52,10 +60,10 @@ class LogsProcess(WizardProcess):
         # All logs added
         if not self.is_cancelled():
             if self.should_fail:
-                self.log("[ERROR] Installation completed with error!")
+                self.log("[ERROR] Wizard completed with error!")
                 self.set_success(False)
             else:
-                self.log("[SUCCESS] Installation completed successfully!")
+                self.log("[SUCCESS] Wizard completed successfully!")
                 self.set_success(True)
         
         # If cancelled, complete with failure
@@ -80,22 +88,22 @@ class LogsStep(WizardStep):
         
         # If should fail, don't show console, process will complete immediately
         if self.should_fail:
-            title = tk.Label(content_frame, text="Checking Installation", 
+            title = tk.Label(content_frame, text="Checking Status", 
                             font=("Arial", 16, "bold"))
             title.pack(pady=(0, 20), anchor=tk.W)
             
             info = tk.Label(content_frame, 
-                           text="Checking installation status...",
+                           text="Checking wizard status...",
                            justify=tk.LEFT, font=("Arial", 10))
             info.pack(anchor=tk.W, pady=(0, 15))
             return
         
-        title = tk.Label(content_frame, text="Installation", 
+        title = tk.Label(content_frame, text="Processing", 
                         font=("Arial", 16, "bold"))
         title.pack(pady=(0, 15), anchor=tk.W)
         
         info = tk.Label(content_frame, 
-                       text="Installing...",
+                       text="Processing...",
                        justify=tk.LEFT, font=("Arial", 10))
         info.pack(anchor=tk.W, pady=(0, 10))
         

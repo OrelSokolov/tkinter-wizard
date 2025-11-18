@@ -12,11 +12,16 @@ src_dir = os.path.join(parent_dir, 'src')
 if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
+# Add demo directory to path for imports
+demo_dir = os.path.dirname(os.path.abspath(__file__))
+if demo_dir not in sys.path:
+    sys.path.insert(0, demo_dir)
+
 from wizard import WizardApp
-from wizard.steps.configuration_step import ConfigurationStep
-from wizard.steps.progress_step import ProgressStep
-from wizard.steps.checkbox_step import CheckboxStep
-from wizard.steps.logs_step import LogsStep
+from steps.configuration_step import ConfigurationStep
+from steps.progress_step import ProgressStep
+from steps.checkbox_step import CheckboxStep
+from steps.logs_step import LogsStep
 
 
 def main():

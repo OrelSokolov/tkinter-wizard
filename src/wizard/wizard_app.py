@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 from .enums import StepStatus
+from .wizard_config import WizardConfig
 
 
 class WizardApp:
@@ -11,14 +12,22 @@ class WizardApp:
     Built from WizardStep objects.
     """
     
-    def __init__(self, root, steps=None):
+    def __init__(self, root, steps=None, config=None):
         """
         Args:
             root: root Tkinter window
             steps: list of WizardStep objects (can be set later via set_steps)
+            config: WizardConfig object (optional, creates default if not provided)
         """
         self.root = root
-        self.root.title("Installer - Wizard Demo")
+        self.config = config or WizardConfig()
+        
+        # Set window title from config
+        title = self.config.wizard_name
+        if self.config.short_description:
+            title = "{} - {}".format(title, self.config.short_description)
+        self.root.title(title)
+        
         self.root.geometry("600x450")
         self.root.resizable(False, False)
         
@@ -304,8 +313,8 @@ class WizardApp:
         """Cancel current process and exit wizard with error"""
         # Show confirmation dialog
         result = messagebox.askyesno(
-            "Cancel Installation",
-            "Are you sure you want to cancel the installation?",
+            "Cancel Wizard",
+            "Are you sure you want to cancel the wizard?",
             icon='question'
         )
         

@@ -11,9 +11,14 @@ class WelcomeStep(WizardStep):
                         font=("Arial", 16, "bold"))
         title.pack(pady=(0, 20))
         
+        wizard_name = self.wizard_app.config.wizard_name if self.wizard_app.config else "Wizard"
+        message_text = "Welcome to {}!\n\n".format(wizard_name)
+        if self.wizard_app.config and self.wizard_app.config.short_description:
+            message_text += "{}\n\n".format(self.wizard_app.config.short_description)
+        message_text += "Click 'Next' to continue."
+        
         message = tk.Label(content_frame, 
-                          text="This wizard will help you install the program.\n\n"
-                               "Click 'Next' to continue.",
+                          text=message_text,
                           justify=tk.LEFT, font=("Arial", 10))
         message.pack(pady=10)
         
