@@ -33,6 +33,9 @@ class WizardApp:
         self.root = root
         self.config = config or WizardConfig()
         
+        # Initialize DPI scaling for window sizes only
+        self._init_dpi_scaling()
+        
         # Set window title from config
         title = self.config.wizard_name
         if self.config.short_description:
@@ -42,7 +45,10 @@ class WizardApp:
         # Set window size and constraints
         # On Linux, we need to set minsize and use update_idletasks for proper sizing
         # We'll calculate optimal size based on content dynamically
-        self.root.minsize(800, 600)
+        # Scale window sizes based on DPI
+        min_width = self.scale(700)
+        min_height = self.scale(400)
+        self.root.minsize(min_width, min_height)
         
         # Get screen dimensions to limit max size and center window
         screen_width = self.root.winfo_screenwidth()
@@ -50,9 +56,9 @@ class WizardApp:
         # Set maxsize to 90% of screen size to leave some margin
         self.root.maxsize(int(screen_width * 0.9), int(screen_height * 0.9))
         
-        # Initial geometry (will be adjusted based on content)
-        initial_width = 900
-        initial_height = 650
+        # Initial geometry (will be adjusted based on content) - scaled
+        initial_width = self.scale(750)
+        initial_height = self.scale(450)
         self.root.geometry(f"{initial_width}x{initial_height}")
         
         # Center window on screen
@@ -217,6 +223,58 @@ class WizardApp:
             self._end_fail_step = DefaultEndFailStep(self)
             self._end_success_step = DefaultEndSuccessStep(self)
     
+    def _init_dpi_scaling(self):
+        """Initialize DPI scaling based on screen DPI for window sizes"""
+        try:
+            # Get DPI from root window
+            # winfo_fpixels('1i') returns pixels per inch
+            dpi = self.root.winfo_fpixels('1i')
+            
+            # Base DPI (96 is standard, but we'll use 100 for better scaling)
+            base_dpi = 100.0
+            
+            # Calculate scale factor
+            self.scale_factor = dpi / base_dpi
+            
+            # Clamp scale factor to reasonable range (0.5 to 3.0)
+            # This prevents extreme scaling on very high or very low DPI displays
+            self.scale_factor = max(0.5, min(3.0, self.scale_factor))
+            
+        except:
+            # Fallback: try to estimate from screen size
+            try:
+                screen_width = self.root.winfo_screenwidth()
+                screen_height = self.root.winfo_screenheight()
+                
+                # Estimate DPI based on common screen sizes
+                # Assume 1920x1080 = 96 DPI, scale from there
+                if screen_width >= 3840:  # 4K
+                    estimated_dpi = 150
+                elif screen_width >= 2560:  # 2K/QHD
+                    estimated_dpi = 120
+                elif screen_width >= 1920:  # Full HD
+                    estimated_dpi = 96
+                else:  # Lower resolution
+                    estimated_dpi = 96
+                
+                base_dpi = 100.0
+                self.scale_factor = estimated_dpi / base_dpi
+                self.scale_factor = max(0.5, min(3.0, self.scale_factor))
+            except:
+                # Ultimate fallback - no scaling
+                self.scale_factor = 1.0
+    
+    def scale(self, value):
+        """Scale a pixel value based on DPI (for window sizes only)
+        
+        Args:
+            value: pixel value to scale
+        
+        Returns:
+            Scaled pixel value as integer
+        """
+        return int(value * self.scale_factor)
+    
     def set_welcome_step(self, step):
         """Set custom welcome step"""
         self._welcome_step = step
@@ -282,9 +340,9 @@ class WizardApp:
         # Update to get real widget sizes
         self.root.update_idletasks()
         
-        # Calculate required width and height based on content
-        max_width = 800  # Minimum width
-        max_height = 600  # Minimum height
+        # Calculate required width and height based on content - use scaled minimums
+        max_width = self.scale(700)  # Minimum width
+        max_height = self.scale(500)  # Minimum height
         
         # Helper to get widget dimensions (actual or requested)
         def get_widget_size(widget):
@@ -381,9 +439,11 @@ class WizardApp:
         required_width = min(required_width, max_width_allowed)
         required_height = min(required_height, max_height_allowed)
         
-        # Ensure minimum size
-        required_width = max(required_width, 800)
-        required_height = max(required_height, 600)
+        # Ensure minimum size - scaled
+        min_width = self.scale(700)
+        min_height = self.scale(500)
+        required_width = max(required_width, min_width)
+        required_height = max(required_height, min_height)
         
         return int(required_width), int(required_height)
     
@@ -428,11 +488,13 @@ class WizardApp:
             new_width = optimal_width
             new_height = optimal_height
             self._size_adjusted = True
-        elif current_width < 800 or current_height < 600:
+        min_width = self.scale(700)
+        min_height = self.scale(500)
+        if current_width < min_width or current_height < min_height:
             # Window is below minimum - enforce minimum
             should_resize = True
-            new_width = max(800, optimal_width)
-            new_height = max(600, optimal_height)
+            new_width = max(min_width, optimal_width)
+            new_height = max(min_height, optimal_height)
         elif current_width < optimal_width or current_height < optimal_height:
             # Window is smaller than optimal but above minimum
             # Only resize if significantly smaller (more than 50px difference) to avoid jitter
