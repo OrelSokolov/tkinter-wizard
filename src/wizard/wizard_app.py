@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
@@ -119,13 +120,46 @@ class WizardApp:
         self.steps = []
         self.current_step_index = 0
         
-        # Create container for steps (use ttk.Frame to respect theme colors)
-        self.content_frame = ttk.Frame(self.root, padding=20)
+        # Get system colors from theme
+        self._init_system_colors()
+        
+        # Create main container that fills entire window
+        self.main_container = tk.Frame(self.root)
+        self.main_container.pack(fill=tk.BOTH, expand=True)
+        
+        # Create sidebar for steps list using system colors
+        sidebar_bg = self._get_system_color('background')
+        self.sidebar_frame = tk.Frame(self.main_container, width=200, bg=sidebar_bg)
+        self.sidebar_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=False)
+        self.sidebar_frame.pack_propagate(False)
+        
+        # Add vertical separator on the right side of sidebar
+        separator = tk.Frame(self.main_container, width=1, bg="#d0d0d0")
+        separator.pack(side=tk.LEFT, fill=tk.Y)
+        
+        # Sidebar title
+        sidebar_title = tk.Label(self.sidebar_frame, text="Steps", 
+                                font=("Arial", 12, "bold"), bg=sidebar_bg, pady=10)
+        sidebar_title.pack()
+        
+        # Container for step items
+        self.steps_list_frame = tk.Frame(self.sidebar_frame, bg=sidebar_bg)
+        self.steps_list_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Store step widgets for updating
+        self.step_widgets = []
+        
+        # Create right side container for content and navigation
+        self.right_container = tk.Frame(self.main_container)
+        self.right_container.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        # Create container for steps content
+        self.content_frame = tk.Frame(self.right_container, padx=20, pady=20)
         self.content_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Navigation buttons (use ttk.Frame to respect theme colors)
-        self.nav_frame = ttk.Frame(self.root, padding=(20, 10))
-        self.nav_frame.pack(fill=tk.X)
+        # Navigation buttons
+        self.nav_frame = tk.Frame(self.right_container, padx=20, pady=10)
+        self.nav_frame.pack(fill=tk.X, side=tk.BOTTOM)
         
         self.back_btn = ttk.Button(self.nav_frame, text="< Back", 
                                    command=self.prev_step, state="disabled")
@@ -223,6 +257,7 @@ class WizardApp:
         self.steps = final_steps
         self.current_step_index = 0
         if self.steps:
+            self.update_sidebar()
             self.show_current_step()
     
     def _center_window(self, width=None, height=None):
@@ -365,6 +400,7 @@ class WizardApp:
             step = self.steps[self.current_step_index]
             step.render(self.content_frame)
         
+        self.update_sidebar()
         self.update_navigation()
         
         # On Linux/Ubuntu, ensure window geometry is properly applied after content is rendered
@@ -557,8 +593,9 @@ class WizardApp:
                             self.show_current_step()
                             return
         
-        # Update navigation
+        # Update navigation and sidebar
         self.update_navigation()
+        self.update_sidebar()
     
     def cancel_process(self):
         """Cancel current process and exit wizard with error"""
@@ -638,3 +675,197 @@ class WizardApp:
             
             self.current_step_index -= 1
             self.show_current_step()
+    
+    def _get_step_name(self, step):
+        """Get display name for a step"""
+        class_name = step.__class__.__name__
+        # Convert CamelCase to Title Case
+        name = re.sub(r'(?<!^)(?=[A-Z])', ' ', class_name)
+        # Remove "Step" suffix if present
+        if name.endswith(' Step'):
+            name = name[:-5]
+        return name
+    
+    def _get_step_status_icon(self, status):
+        """Get icon/symbol for step status"""
+        if status == StepStatus.SUCCESS:
+            return "✓"
+        elif status == StepStatus.FAILED:
+            return "✗"
+        elif status == StepStatus.RUNNING:
+            return "⟳"
+        else:  # PENDING
+            return "○"
+    
+    def _init_system_colors(self):
+        """Initialize system colors from theme"""
+        try:
+            # Get main app background color
+            app_bg = self.style.lookup('TFrame', 'background') or ''
+            if not app_bg:
+                try:
+                    app_bg = self.root.cget('bg')
+                except:
+                    app_bg = ''
+            if not app_bg:
+                app_bg = "#ffffff"  # Default white
+            
+            # Sidebar background - use darker/contrasting color
+            # Make sidebar visually distinct from main content
+            self.sidebar_bg = self._darken_color(app_bg, 0.15)  # 15% darker
+            
+            # Text color - ensure good contrast
+            self.text_color = "#333333"  # Dark gray for good readability
+            
+            # Highlight background for current step - use bright, contrasting color
+            self.highlight_bg = "#e3f2fd"  # Light blue - clearly visible
+            
+            # Current step text color - use system accent color
+            self.current_color = "#0078d4"  # Blue accent color
+            
+            # Status colors (semantic colors)
+            self.success_color = "#107c10"  # Green
+            self.failed_color = "#d13438"  # Red
+            self.running_color = "#ffaa00"  # Orange
+            self.pending_color = "#666666"  # Gray
+                
+        except Exception as e:
+            # Fallback to default colors if theme lookup fails
+            self.sidebar_bg = "#f5f5f5"
+            self.text_color = "#333333"
+            self.highlight_bg = "#e3f2fd"
+            self.current_color = "#0078d4"
+            self.success_color = "#107c10"
+            self.failed_color = "#d13438"
+            self.running_color = "#ffaa00"
+            self.pending_color = "#666666"
+    
+    def _darken_color(self, color, factor=0.15):
+        """Darken a color by a factor (0.0-1.0)"""
+        if color.startswith('#'):
+            try:
+                # Convert hex to RGB, darken, convert back
+                r = int(color[1:3], 16)
+                g = int(color[3:5], 16)
+                b = int(color[5:7], 16)
+                r = max(0, int(r * (1 - factor)))
+                g = max(0, int(g * (1 - factor)))
+                b = max(0, int(b * (1 - factor)))
+                return "#{:02x}{:02x}{:02x}".format(r, g, b)
+            except:
+                return "#f5f5f5"  # Fallback
+        return "#f5f5f5"  # Fallback
+    
+    def _get_system_color(self, color_type):
+        """Get system color by type"""
+        if hasattr(self, 'sidebar_bg'):
+            if color_type == 'background':
+                return self.sidebar_bg
+            elif color_type == 'text':
+                return self.text_color
+            elif color_type == 'highlight':
+                return self.highlight_bg
+        return "#f0f0f0"  # Fallback
+    
+    def _get_step_status_color(self, status, is_current):
+        """Get color for step status"""
+        if is_current:
+            return self.current_color
+        elif status == StepStatus.SUCCESS:
+            return self.success_color
+        elif status == StepStatus.FAILED:
+            return self.failed_color
+        elif status == StepStatus.RUNNING:
+            return self.running_color
+        else:  # PENDING
+            return self.pending_color
+    
+    def _on_step_click(self, step_index):
+        """Handle click on step in sidebar"""
+        # Only allow navigation to completed steps or current step
+        if step_index < 0 or step_index >= len(self.steps):
+            return
+        
+        target_step = self.steps[step_index]
+        current_step = self.steps[self.current_step_index] if self.current_step_index < len(self.steps) else None
+        
+        # Allow clicking on:
+        # 1. Current step (no-op)
+        # 2. Completed steps (SUCCESS or FAILED) - navigate back
+        # 3. Don't allow clicking on future steps or running steps
+        
+        if step_index == self.current_step_index:
+            return  # Already on this step
+        
+        if target_step.status == StepStatus.SUCCESS or target_step.status == StepStatus.FAILED:
+            # Navigate to completed step
+            if current_step and current_step.status == StepStatus.RUNNING:
+                return  # Can't navigate during process execution
+            self.current_step_index = step_index
+            self.show_current_step()
+    
+    def update_sidebar(self):
+        """Update the sidebar with current steps and statuses"""
+        # Clear existing step widgets
+        for widget in self.steps_list_frame.winfo_children():
+            widget.destroy()
+        self.step_widgets = []
+        
+        # Create widgets for each step
+        for i, step in enumerate(self.steps):
+            is_current = (i == self.current_step_index)
+            step_name = self._get_step_name(step)
+            status_icon = self._get_step_status_icon(step.status)
+            status_color = self._get_step_status_color(step.status, is_current)
+            
+            # Create frame for step item using system colors
+            step_bg = self._get_system_color('background')
+            if is_current:
+                step_bg = self._get_system_color('highlight')
+            
+            step_frame = tk.Frame(self.steps_list_frame, bg=step_bg)
+            step_frame.pack(fill=tk.X)
+            
+            # Create clickable area
+            def make_click_handler(index):
+                def handler(event=None):
+                    self._on_step_click(index)
+                return handler
+            
+            click_handler = make_click_handler(i)
+            
+            # Status icon
+            icon_label = tk.Label(step_frame, text=status_icon, 
+                                 font=("Arial", 12), bg=step_frame.cget("bg"),
+                                 fg=status_color, width=2)
+            icon_label.pack(side=tk.LEFT, padx=(5, 5))
+            icon_label.bind("<Button-1>", click_handler)
+            
+            # Step number and name
+            step_text = "{} {}".format(i + 1, step_name)
+            name_fg = self._get_system_color('text') if not is_current else self.current_color
+            name_label = tk.Label(step_frame, text=step_text,
+                                font=("Arial", 9), bg=step_frame.cget("bg"),
+                                fg=name_fg,
+                                anchor=tk.W, justify=tk.LEFT)
+            name_label.pack(side=tk.LEFT, fill=tk.X, expand=True)
+            name_label.bind("<Button-1>", click_handler)
+            
+            # Make cursor change on hover
+            def on_enter(widget, step_index):
+                if step_index != self.current_step_index:
+                    widget.config(cursor="hand2")
+            
+            def on_leave(widget):
+                widget.config(cursor="")
+            
+            for widget in [icon_label, name_label, step_frame]:
+                widget.bind("<Enter>", lambda e, w=widget, idx=i: on_enter(w, idx))
+                widget.bind("<Leave>", lambda e, w=widget: on_leave(w))
+                widget.bind("<Button-1>", click_handler)
+            
+            self.step_widgets.append({
+                'frame': step_frame,
+                'icon': icon_label,
+                'name': name_label
+            })
