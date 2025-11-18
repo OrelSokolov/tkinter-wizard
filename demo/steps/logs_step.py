@@ -2,6 +2,7 @@
 import sys
 import os
 import tkinter as tk
+from tkinter import ttk
 from tkinter import scrolledtext
 import time
 
@@ -88,23 +89,23 @@ class LogsStep(WizardStep):
         
         # If should fail, don't show console, process will complete immediately
         if self.should_fail:
-            title = tk.Label(content_frame, text="Checking Status", 
-                            font=("Arial", 16, "bold"))
+            title = ttk.Label(content_frame, text="Checking Status", 
+                             font=("Arial", 16, "bold"))
             title.pack(pady=(0, 20), anchor=tk.W)
             
-            info = tk.Label(content_frame, 
-                           text="Checking wizard status...",
-                           justify=tk.LEFT, font=("Arial", 10))
+            info = ttk.Label(content_frame, 
+                            text="Checking wizard status...",
+                            justify=tk.LEFT, font=("Arial", 10))
             info.pack(anchor=tk.W, pady=(0, 15))
             return
         
-        title = tk.Label(content_frame, text="Processing", 
-                        font=("Arial", 16, "bold"))
+        title = ttk.Label(content_frame, text="Processing", 
+                         font=("Arial", 16, "bold"))
         title.pack(pady=(0, 15), anchor=tk.W)
         
-        info = tk.Label(content_frame, 
-                       text="Processing...",
-                       justify=tk.LEFT, font=("Arial", 10))
+        info = ttk.Label(content_frame, 
+                        text="Processing...",
+                        justify=tk.LEFT, font=("Arial", 10))
         info.pack(anchor=tk.W, pady=(0, 10))
         
         # Text field for logs

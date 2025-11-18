@@ -21,17 +21,17 @@ class ConfigurationStep(WizardStep):
         self.config_choice = tk.StringVar(value="standard")
     
     def create_content(self, content_frame):
-        title = tk.Label(content_frame, text="Configuration", 
-                        font=("Arial", 16, "bold"))
+        title = ttk.Label(content_frame, text="Configuration", 
+                         font=("Arial", 16, "bold"))
         title.pack(pady=(0, 20), anchor=tk.W)
         
-        info = tk.Label(content_frame, 
-                       text="Select configuration type:",
-                       justify=tk.LEFT, font=("Arial", 10))
+        info = ttk.Label(content_frame, 
+                        text="Select configuration type:",
+                        justify=tk.LEFT, font=("Arial", 10))
         info.pack(anchor=tk.W, pady=(0, 15))
         
-        radio_frame = tk.Frame(content_frame)
-        radio_frame.pack(anchor=tk.W, fill=tk.X, padx=20)
+        radio_frame = ttk.Frame(content_frame, padding=(20, 0))
+        radio_frame.pack(anchor=tk.W, fill=tk.X)
         
         ttk.Radiobutton(radio_frame, text="Standard", 
                        variable=self.config_choice, value="standard").pack(anchor=tk.W, pady=5)

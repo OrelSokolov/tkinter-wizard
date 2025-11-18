@@ -4,8 +4,39 @@ Library for creating general wizards based on Tkinter.
 
 ## Installation
 
+### Установка из PyPI
+
 ```bash
 pip install tkinter-wizard
+```
+
+### Установка из исходников
+
+1. Клонируйте репозиторий или скачайте исходный код:
+```bash
+git clone https://github.com/OrelSokolov/tkinter-wizard.git
+cd tkinter-wizard
+```
+
+2. Установите проект в режиме разработки:
+```bash
+pip install -e .
+```
+
+Или установите обычным способом:
+```bash
+pip install .
+```
+
+### Требования
+
+- Python >= 3.7
+- tkinter (обычно входит в стандартную поставку Python)
+
+### Установка с зависимостями для разработки
+
+```bash
+pip install -e ".[dev]"
 ```
 
 ## Quick Start

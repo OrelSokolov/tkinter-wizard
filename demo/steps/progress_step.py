@@ -60,18 +60,18 @@ class ProgressStep(WizardStep):
     """Step with progress bar"""
     
     def create_content(self, content_frame):
-        title = tk.Label(content_frame, text="Preparing", 
-                        font=("Arial", 16, "bold"))
+        title = ttk.Label(content_frame, text="Preparing", 
+                         font=("Arial", 16, "bold"))
         title.pack(pady=(0, 20), anchor=tk.W)
         
-        info = tk.Label(content_frame, 
-                       text="Please wait...",
-                       justify=tk.LEFT, font=("Arial", 10))
+        info = ttk.Label(content_frame, 
+                        text="Please wait...",
+                        justify=tk.LEFT, font=("Arial", 10))
         info.pack(anchor=tk.W, pady=(0, 15))
         
         # Create progressbar and labels
-        progress_frame = tk.Frame(content_frame)
-        progress_frame.pack(fill=tk.X, pady=20)
+        progress_frame = ttk.Frame(content_frame, padding=(0, 20))
+        progress_frame.pack(fill=tk.X)
         
         progress_var = tk.DoubleVar()
         progress_bar = ttk.Progressbar(progress_frame, 
@@ -79,18 +79,18 @@ class ProgressStep(WizardStep):
                                        maximum=100, length=500)
         progress_bar.pack(fill=tk.X, pady=(0, 10))
         
-        labels_frame = tk.Frame(progress_frame)
+        labels_frame = ttk.Frame(progress_frame)
         labels_frame.pack(fill=tk.X)
         
-        percent_label = tk.Label(labels_frame, text="0%", font=("Arial", 10))
+        percent_label = ttk.Label(labels_frame, text="0%", font=("Arial", 10))
         percent_label.pack(side=tk.LEFT)
         
-        eta_label = tk.Label(labels_frame, text="Remaining: --:--", 
-                            font=("Arial", 9), fg="gray")
+        eta_label = ttk.Label(labels_frame, text="Remaining: --:--", 
+                             font=("Arial", 9), foreground="gray")
         eta_label.pack(side=tk.LEFT, padx=(20, 0))
         
-        elapsed_label = tk.Label(labels_frame, text="Elapsed: 0:00", 
-                                font=("Arial", 9), fg="gray")
+        elapsed_label = ttk.Label(labels_frame, text="Elapsed: 0:00", 
+                                 font=("Arial", 9), foreground="gray")
         elapsed_label.pack(side=tk.LEFT, padx=(20, 0))
         
         # Save references for use in process

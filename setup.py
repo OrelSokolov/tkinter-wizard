@@ -45,6 +45,9 @@ setup(
             "pytest>=7.0.0",
             "pytest-cov>=4.0.0",
         ],
+        "themes": [
+            "ttkthemes",
+        ],
     },
     project_urls={
         "Bug Reports": "https://github.com/OrelSokolov/tkinter-wizard/issues",

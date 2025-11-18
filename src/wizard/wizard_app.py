@@ -2,8 +2,18 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+import sys
+import platform
 from .enums import StepStatus
 from .wizard_config import WizardConfig
+
+# Try to import ttkthemes for additional themes
+try:
+    from ttkthemes import ThemedStyle
+    TTKTHEMES_AVAILABLE = True
+except ImportError:
+    TTKTHEMES_AVAILABLE = False
+    ThemedStyle = None
 
 
 class WizardApp:
@@ -28,23 +38,75 @@ class WizardApp:
             title = "{} - {}".format(title, self.config.short_description)
         self.root.title(title)
         
-        self.root.geometry("600x450")
-        self.root.resizable(False, False)
+        # Set window size and constraints
+        # On Linux, we need to set minsize and use update_idletasks for proper sizing
+        # We'll calculate optimal size based on content dynamically
+        self.root.minsize(800, 600)
         
-        # Configure styles using system theme
-        self.style = ttk.Style()
-        available_themes = self.style.theme_names()
+        # Get screen dimensions to limit max size and center window
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        # Set maxsize to 90% of screen size to leave some margin
+        self.root.maxsize(int(screen_width * 0.9), int(screen_height * 0.9))
         
-        # Select Windows system theme if available
-        if 'vista' in available_themes:
-            self.style.theme_use('vista')
-        elif 'winnative' in available_themes:
-            self.style.theme_use('winnative')
-        elif 'xpnative' in available_themes:
-            self.style.theme_use('xpnative')
+        # Initial geometry (will be adjusted based on content)
+        initial_width = 900
+        initial_height = 650
+        self.root.geometry(f"{initial_width}x{initial_height}")
+        
+        # Center window on screen
+        self._center_window(initial_width, initial_height)
+        
+        self.root.resizable(True, True)  # Allow resizing and maximizing window
+        
+        # Track if we've already adjusted size once (to avoid jumping on every step change)
+        self._size_adjusted = False
+        
+        # Configure styles using system theme or ttkthemes if available
+        if TTKTHEMES_AVAILABLE:
+            # Use ThemedStyle from ttkthemes for better theme support
+            self.style = ThemedStyle(self.root)
+            available_themes = self.style.theme_names()
         else:
-            if available_themes:
-                self.style.theme_use(available_themes[0])
+            # Fallback to standard ttk.Style
+            self.style = ttk.Style()
+            available_themes = self.style.theme_names()
+        
+        # Select appropriate theme based on platform
+        selected_theme = None
+        if platform.system() == 'Windows':
+            # Select Windows system theme if available
+            if 'vista' in available_themes:
+                selected_theme = 'vista'
+            elif 'winnative' in available_themes:
+                selected_theme = 'winnative'
+            elif 'xpnative' in available_themes:
+                selected_theme = 'xpnative'
+            elif available_themes:
+                selected_theme = available_themes[0]
+        else:
+            # On Linux/Unix, prefer modern themes from ttkthemes if available
+            if TTKTHEMES_AVAILABLE:
+                # Preferred modern themes from ttkthemes
+                preferred_themes = ['arc', 'equilux', 'adapta', 'clearlooks', 'elegance']
+                for theme in preferred_themes:
+                    if theme in available_themes:
+                        selected_theme = theme
+                        break
+                # If no preferred theme found, use 'clam' or any available
+                if not selected_theme:
+                    if 'clam' in available_themes:
+                        selected_theme = 'clam'
+                    elif available_themes:
+                        selected_theme = available_themes[0]
+            else:
+                # Fallback to built-in themes
+                if 'clam' in available_themes:
+                    selected_theme = 'clam'
+                elif 'alt' in available_themes:
+                    selected_theme = 'alt'
+                elif available_themes:
+                    selected_theme = available_themes[0]
         
         # Default steps (can be overridden)
         self._welcome_step = None
@@ -57,12 +119,12 @@ class WizardApp:
         self.steps = []
         self.current_step_index = 0
         
-        # Create container for steps
-        self.content_frame = tk.Frame(self.root, padx=20, pady=20)
+        # Create container for steps (use ttk.Frame to respect theme colors)
+        self.content_frame = ttk.Frame(self.root, padding=20)
         self.content_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Navigation buttons
-        self.nav_frame = tk.Frame(self.root, padx=20, pady=10)
+        # Navigation buttons (use ttk.Frame to respect theme colors)
+        self.nav_frame = ttk.Frame(self.root, padding=(20, 10))
         self.nav_frame.pack(fill=tk.X)
         
         self.back_btn = ttk.Button(self.nav_frame, text="< Back", 
@@ -76,6 +138,10 @@ class WizardApp:
         self.cancel_btn = ttk.Button(self.nav_frame, text="Cancel", 
                                      command=self.cancel_process)
         self.cancel_btn.pack(side=tk.RIGHT, padx=(0, 10))
+        
+        # Apply system theme (styles will be from the theme)
+        if selected_theme:
+            self.style.theme_use(selected_theme)
         
         # Set steps if provided
         if steps:
@@ -97,19 +163,19 @@ class WizardApp:
             
             class DefaultWelcomeStep(WizardStep):
                 def create_content(self, content_frame):
-                    tk.Label(content_frame, text="Welcome", font=("Arial", 16, "bold")).pack()
+                    ttk.Label(content_frame, text="Welcome", font=("Arial", 16, "bold")).pack()
                 def create_process(self):
                     return None
             
             class DefaultEndFailStep(WizardStep):
                 def create_content(self, content_frame):
-                    tk.Label(content_frame, text="Error", font=("Arial", 16, "bold"), fg="red").pack()
+                    ttk.Label(content_frame, text="Error", font=("Arial", 16, "bold"), foreground="red").pack()
                 def create_process(self):
                     return None
             
             class DefaultEndSuccessStep(WizardStep):
                 def create_content(self, content_frame):
-                    tk.Label(content_frame, text="Success", font=("Arial", 16, "bold"), fg="green").pack()
+                    ttk.Label(content_frame, text="Success", font=("Arial", 16, "bold"), foreground="green").pack()
                 def create_process(self):
                     return None
             
@@ -159,6 +225,133 @@ class WizardApp:
         if self.steps:
             self.show_current_step()
     
+    def _center_window(self, width=None, height=None):
+        """Center window on screen"""
+        if width is None:
+            width = self.root.winfo_width()
+        if height is None:
+            height = self.root.winfo_height()
+        
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        
+        # Calculate center position
+        x = (screen_width - width) // 2
+        y = (screen_height - height) // 2
+        
+        # Set window position
+        self.root.geometry(f"{width}x{height}+{x}+{y}")
+    
+    def _calculate_optimal_size(self):
+        """Calculate optimal window size based on current content"""
+        # Update to get real widget sizes
+        self.root.update_idletasks()
+        
+        # Calculate required width and height based on content
+        max_width = 800  # Minimum width
+        max_height = 600  # Minimum height
+        
+        # Helper to get widget dimensions (actual or requested)
+        def get_widget_size(widget):
+            """Get widget size, preferring actual size if available"""
+            try:
+                # Try actual size first (works for mapped widgets)
+                width = widget.winfo_width()
+                height = widget.winfo_height()
+                
+                # If width/height is 1, widget might not be mapped yet, use reqwidth/reqheight
+                if width <= 1 or height <= 1:
+                    width = widget.winfo_reqwidth()
+                    height = widget.winfo_reqheight()
+                
+                # For text widgets with character-based sizing, convert to pixels
+                # Text widgets: width/height in characters, need to convert
+                if hasattr(widget, 'cget'):
+                    try:
+                        text_width = widget.cget('width')
+                        text_height = widget.cget('height')
+                        if isinstance(text_width, int) and text_width > 0:
+                            # Approximate: 1 char ≈ 8-10 pixels (depends on font)
+                            # Use a more conservative estimate
+                            font = widget.cget('font') if widget.cget('font') else ('Arial', 9)
+                            # Estimate pixel width: chars * 7 pixels (conservative)
+                            width = max(width, text_width * 7)
+                        if isinstance(text_height, int) and text_height > 0:
+                            # Estimate pixel height: lines * 20 pixels (conservative for line height)
+                            height = max(height, text_height * 20)
+                    except:
+                        pass
+                
+                return width, height
+            except:
+                return 0, 0
+        
+        # Iterate through all widgets in content_frame to find maximum dimensions
+        def get_widget_requirements(widget, parent_x=0, parent_y=0):
+            """Recursively get size requirements from widgets"""
+            nonlocal max_width, max_height
+            
+            try:
+                # Get widget dimensions
+                width, height = get_widget_size(widget)
+                
+                if width <= 0 or height <= 0:
+                    width = widget.winfo_reqwidth()
+                    height = widget.winfo_reqheight()
+                
+                # Get widget position relative to parent
+                x = widget.winfo_x()
+                y = widget.winfo_y()
+                
+                # Calculate absolute position within content_frame
+                abs_x = parent_x + x
+                abs_y = parent_y + y
+                
+                # Update max dimensions
+                widget_total_width = abs_x + width
+                widget_total_height = abs_y + height
+                
+                if widget_total_width > max_width:
+                    max_width = widget_total_width
+                if widget_total_height > max_height:
+                    max_height = widget_total_height
+                
+                # Recursively check children
+                for child in widget.winfo_children():
+                    get_widget_requirements(child, abs_x, abs_y)
+            except:
+                # Widget might be destroyed or not yet mapped, skip it
+                pass
+        
+        # Check all widgets in content_frame
+        for widget in self.content_frame.winfo_children():
+            get_widget_requirements(widget)
+        
+        # Add padding and navigation frame
+        # content_frame has padx=20, pady=20 (40 total horizontal, 40 total vertical)
+        # nav_frame height (approximately 60-70px with padding and buttons)
+        nav_height = 70
+        
+        required_width = max_width + 40  # content padding (20*2)
+        required_height = max_height + 40 + nav_height  # content padding (20*2) + nav
+        
+        # Add some extra margin for window decorations and rounding
+        required_width += 10
+        required_height += 50  # Title bar + extra margin
+        
+        # Ensure we don't exceed maxsize
+        max_width_allowed = self.root.winfo_screenwidth() * 0.9
+        max_height_allowed = self.root.winfo_screenheight() * 0.9
+        
+        required_width = min(required_width, max_width_allowed)
+        required_height = min(required_height, max_height_allowed)
+        
+        # Ensure minimum size
+        required_width = max(required_width, 800)
+        required_height = max(required_height, 600)
+        
+        return int(required_width), int(required_height)
+    
     def clear_content(self):
         """Clear current step content"""
         for widget in self.content_frame.winfo_children():
@@ -173,6 +366,64 @@ class WizardApp:
             step.render(self.content_frame)
         
         self.update_navigation()
+        
+        # On Linux/Ubuntu, ensure window geometry is properly applied after content is rendered
+        # Calculate optimal size based on content to ensure everything fits
+        self.root.update_idletasks()
+        
+        # Only adjust size on first step or if window is too small
+        # This prevents window jumping on every step change
+        current_width = self.root.winfo_width()
+        current_height = self.root.winfo_height()
+        
+        # Calculate optimal size but only resize if necessary
+        optimal_width, optimal_height = self._calculate_optimal_size()
+        
+        # Resize only if:
+        # 1. First time showing content (size not adjusted yet), OR
+        # 2. Current size is too small (below minimum or below optimal)
+        should_resize = False
+        new_width = current_width
+        new_height = current_height
+        
+        if not self._size_adjusted:
+            # First time - set optimal size
+            should_resize = True
+            new_width = optimal_width
+            new_height = optimal_height
+            self._size_adjusted = True
+        elif current_width < 800 or current_height < 600:
+            # Window is below minimum - enforce minimum
+            should_resize = True
+            new_width = max(800, optimal_width)
+            new_height = max(600, optimal_height)
+        elif current_width < optimal_width or current_height < optimal_height:
+            # Window is smaller than optimal but above minimum
+            # Only resize if significantly smaller (more than 50px difference) to avoid jitter
+            if (optimal_width - current_width > 50) or (optimal_height - current_height > 50):
+                should_resize = True
+                new_width = optimal_width
+                new_height = optimal_height
+        
+        if should_resize:
+            # Get current window position to preserve it
+            try:
+                current_x = self.root.winfo_x()
+                current_y = self.root.winfo_y()
+                # Center if this is the first resize, otherwise preserve position
+                if not self._size_adjusted or (current_x == 0 and current_y == 0):
+                    # First resize or window at origin (0,0) - center it
+                    self._center_window(new_width, new_height)
+                else:
+                    # Preserve current position
+                    self.root.geometry(f"{new_width}x{new_height}+{current_x}+{current_y}")
+            except:
+                # Fallback to center if getting position fails
+                self._center_window(new_width, new_height)
+        
+        # Ensure resizable is enabled for maximization
+        self.root.resizable(True, True)
+        self.root.update_idletasks()  # Final update to ensure changes are applied
     
     def update_navigation(self):
         """Update navigation button states"""

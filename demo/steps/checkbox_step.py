@@ -21,25 +21,25 @@ class CheckboxStep(WizardStep):
         self.error_checkbox = tk.BooleanVar(value=False)
     
     def create_content(self, content_frame):
-        title = tk.Label(content_frame, text="System Check", 
-                        font=("Arial", 16, "bold"))
+        title = ttk.Label(content_frame, text="System Check", 
+                         font=("Arial", 16, "bold"))
         title.pack(pady=(0, 20), anchor=tk.W)
         
-        info = tk.Label(content_frame, 
-                       text="Check the option below to simulate an error:",
-                       justify=tk.LEFT, font=("Arial", 10))
+        info = ttk.Label(content_frame, 
+                        text="Check the option below to simulate an error:",
+                        justify=tk.LEFT, font=("Arial", 10))
         info.pack(anchor=tk.W, pady=(0, 15))
         
-        checkbox_frame = tk.Frame(content_frame)
-        checkbox_frame.pack(anchor=tk.W, fill=tk.X, padx=20)
+        checkbox_frame = ttk.Frame(content_frame, padding=(20, 0))
+        checkbox_frame.pack(anchor=tk.W, fill=tk.X)
         
         ttk.Checkbutton(checkbox_frame, 
                        text="Trigger wizard error", 
                        variable=self.error_checkbox).pack(anchor=tk.W, pady=5)
         
-        warning = tk.Label(content_frame, 
-                          text="(If unchecked, wizard will complete successfully)",
-                          font=("Arial", 9), fg="gray")
+        warning = ttk.Label(content_frame, 
+                           text="(If unchecked, wizard will complete successfully)",
+                           font=("Arial", 9), foreground="gray")
         warning.pack(anchor=tk.W, padx=20, pady=(5, 0))
     
     def create_process(self):

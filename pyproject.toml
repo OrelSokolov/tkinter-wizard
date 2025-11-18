@@ -13,6 +13,10 @@ authors = [
     {name = "Oleg Orlov", email = "orelcokolov@gmail.com"}
 ]
 keywords = ["tkinter", "wizard", "gui", "ui"]
+dependencies = []
+
+[project.optional-dependencies]
+themes = ["ttkthemes"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
